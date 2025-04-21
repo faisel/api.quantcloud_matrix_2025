@@ -426,3 +426,23 @@ The above gives you a stable, version‑locked TradingView + LuxAlgo environmen
 ##########
 ##########
 ##########
+
+
+
+
+
+
+###### AWS Server Notes
+Action | Latency Range
+Binance WebSocket update | ~10–50 ms
+Redis read/write | ~1 ms
+PostgreSQL local write (single row) | ~3–10 ms
+Trade API request (internal) | ~15–30 ms
+Binance Futures API order (external) | ~50–150 ms
+
+
+➡️ Total round-trip latency from receiving a price to placing a trade can be under 150–250ms, depending on:
+    your order.post() to Binance
+    Binance response speed (usually fast in Tokyo region)
+    internal optimization (no blocking code, async everywhere)
+

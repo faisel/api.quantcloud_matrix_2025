@@ -8,7 +8,7 @@ uvicorn app.main:app --reload
 git reset --hard
 
 git add .
-git commit -m 'Initial Commit' 
+git commit -m 'Just strategy updated' 
 git push origin main
 
 
