@@ -6,6 +6,69 @@ Automated high‑frequency scalping bot on Binance Futures (Isolated 20×), driv
 
 # 01_Scalp_Strategy.md – BTC‑alpha + dynamic Hedge ETH/SOL
 
+
+
+# Alert
+{HTF_BULL} AND {OB_DEMAND_HIT} AND {HW_CROSS_UP} AND {NO_OVERFLOW} AND {BUY_CONF} AND {TRAIL_BULL}
+
+1. {HTF_BULL}
+Meaning: Higher Timeframe (15m) shows a bullish internal structure.
+Purpose: Ensures you're trading with the broader trend.
+Source: Comes from SMC + PAC BOS/CHoCH structure.
+
+2. {OB_DEMAND_HIT}
+Meaning: Price has just tapped a Volumetric Demand Order Block, strength ≥ 60%.
+Purpose: Entry should occur only at zones of confirmed buying interest.
+Source: LuxAlgo Smart Money Concepts + PAC (OB logic).
+
+3. {HW_CROSS_UP}
+Meaning: Hyperwave oscillator crossed above its SMA (signal line) inside the OB.
+Purpose: Confirms that momentum is shifting bullish at the entry zone.
+Source: Oscillator Matrix, Hyperwave section.
+
+4. {NO_OVERFLOW}
+Meaning: Money Flow overflow is not active.
+Purpose: Avoid entries when the market is overheated and could reverse.
+Source: Oscillator Matrix – Overflow zone ON, auto thresholds.
+
+5. {BUY_CONF}
+Meaning: LuxAlgo Buy Confirmation Signal is active (via Signals & Overlays).
+Purpose: Ensures alignment with a statistically strong buy signal.
+Source: Signals & Overlays, ML classifier + confirmation mode ON.
+
+6. {TRAIL_BULL}
+Meaning: Smart Trail trend direction is bullish.
+Purpose: Final directional filter — you only trail and enter when trend aligns.
+Source: Signals & Overlays, Smart Trail enabled.
+
+
+
+Feature	Source	Used in Strategy
+BOS / CHoCH structure	PAC + SMC	HTF_BULL / HTF_BEAR
+OB boundaries & precision	PAC	OB_DEMAND_HIT / OB_SUPPLY_HIT
+Liquidity zones & traps	PAC	Visual filter only (future: scriptable)
+
+# Summary
+Tag | Confirms... | Module
+HTF_BULL | 15m bias is bullish | SMC + PAC
+OB_DEMAND_HIT | Price tapped strong demand OB | SMC + PAC
+HW_CROSS_UP | Momentum turning bullish | Oscillator Matrix
+NO_OVERFLOW | No exhaustion risk | Oscillator Matrix
+BUY_CONF | Confirmed buy rating | Signals & Overlays
+TRAIL_BULL | AI trailing system shows bullish trend | Signals & Overlays
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 1 Indicator Configuration
 1.1 LuxAlgo – Smart‐Money‐Concepts v1.4 (SMC)
 
