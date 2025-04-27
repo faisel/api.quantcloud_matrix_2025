@@ -1,0 +1,151 @@
+LuxAlgo Oscillator Matrix — distilled reference for strategy design
+
+(focused only on the Matrix; no other indicators mixed in)
+---
+
+1. Key building blocks
+
+Component
+What it tells you
+Signals to watch
+Tunable knobs
+HyperWave
+Noise-filtered momentum & trend bias
+• Color band (above/below signal line)• Turning-point dots (green ↑ / red ↓)• Size-up dots when cross happens in OB > 80 / OS < 20• Auto bullish/bearish divergence lines
+Main Length (trend vs speed)Signal-line algo (SMA = smooth, TS = snappy)Divergence Sensitivity %  ([HyperWave Feature
+Smart Money Flow (SMF)
+Longer-cycle liquidity & “big-player” activity
+• SMF line slope & 50-level bias• Upper / lower threshold breaks (heavy one-sided flow)• Overflow flags when liquidity spikes late in a trend
+Show/Hide Money Flow, Overflow toggle ([Smart Money Flow
+Reversal Signals
+Pattern-scored turning points
+• Minor “–” circles → brief pullbacks• Major “+” triangles → trend-scale reversals
+no extra inputs; inherits HyperWave/SMF context ([Reversal Signals
+Confluence
+How many elements agree
+• Upper (bull) & lower (bear) Confluence Zones shade 0 / 1 / 2 strength• Numeric Confluence Meter 0-100
+Outputs can feed alerts or scripts ([Confluence
+Alerts & Custom Alert Creator
+Converts any mix of the above into TradingView alerts (or JSON for webhooks)
+Pre-set triggers (e.g., “HyperWave OB Signal Down”, “Strong Bullish Confluence”) or multi-step custom logic
+Any-alert() list, step/OR/Invalidate operators, placeholder tokens ([Alerts
+
+---
+
+2. Applying the toolkit
+
+
+A. Scalp-oriented blueprint (1 m – 5 m)
+
+Goal
+Practical checklist
+Catch micro bursts
+• Set Main Length low (e.g., 4-8) so HyperWave flips quickly.• Enter with the first green/red turning-point dot inside Confluence Zone = 2.• Trim/exit when SMF line slams into an Overflow or opposite threshold – that often precedes a momentum stall.• Minor “–” reversal dots against your position → scale out or tighten stop.• Alerts: “Any-alert() → HyperWave Signal Up/Down” plus “Bullish/Bearish Overflow” so the bot can react within one candle.
+
+B. Swing-oriented blueprint (4 h – 1 D)
+
+Goal
+Practical checklist
+Ride multi-day legs
+• Increase Main Length (e.g., 20-34) for smoother HyperWave cycles.• Look for Major “+” reversal triangles that coincide with SMF crossing back through its 50-line and a Confluence Meter > 70 – that trio often marks trend inflection.• Hidden divergences on pullbacks (HyperWave rising while price makes a higher low) give continuation add-ons.• Overflow after a prolonged run is an early exit clue; wait for Confluence to fade from 2 → 1 before closing.• Set long-interval alerts (“HyperWave OB/OS Signal Down/Up”, “Strong Bearish/Bullish Confluence”) to free you from screen-watching.
+
+---
+
+3. Parameter anchoring guide
+
+Setting
+Scalps
+Swings
+Main Length
+4-8
+20-34
+Signal-line algo
+TS (faster)
+SMA (smoother)
+Divergence Sensitivity
+80-90 % (only crystal-clear)
+40-60 % (catch broader structures)
+SMF Thresholds
+Keep default; use as filter, not trigger
+Widen if asset is low-volume to avoid false extremes
+Overflow
+Enable; treat as profit-take ping
+Enable; treat as exhaustion warning
+
+---
+
+4. Workflow suggestion
+
+1. Template the indicator once → duplicate layouts for scalp vs swing with the settings above.
+2. Build alerts last – start with pre-sets, then migrate to Custom Alert Creator when your rule-set is final.
+3. Log every trade + the Matrix states so you can quantify which combo (e.g., dot + Confluence 2 + no Overflow) actually yields edge before automating further.
+
+
+🚀 Blueprint #1: Scalping (1–15 min)
+
+
+📌 Objective:
+
+Capture short-term momentum bursts and quick reversals with minimal noise.
+
+⚙️ Optimal Settings:
+
+- HyperWave Main Length: 5–8
+- Signal Line: Trailing Stop (TS) (faster reaction)
+- Divergence Sensitivity: 80–90% (clear & reliable divergences only)
+- Overflow: Enabled (profit-taking signals)
+
+✅ Entry Criteria:
+
+- HyperWave turning-point dot (green for long, red for short).
+- Confirm with immediate Confluence Zone level 2 (strong agreement).
+- Optional: Quick Minor Reversal "–" circles after pullbacks as add-on signals.
+
+🔴 Exit Criteria:
+
+- Overflow warning (early exit/scale-out).
+- Opposite turning-point dot appears.
+- Confluence dropping from level 2 to 0 or 1 signals weakening momentum.
+
+🚨 Alerts to Set:
+
+- HyperWave turning-point dots (Signal Up/Down)
+- Bullish/Bearish Overflow events
+- Minor reversal signals
+---
+
+🌊 Blueprint #2: Swing Trading (4 h–1 D)
+
+
+📌 Objective:
+
+Identify medium-to-long-term trend reversals and momentum continuations.
+
+⚙️ Optimal Settings:
+
+- HyperWave Main Length: 20–34 (for smoother signals)
+- Signal Line: Simple Moving Average (SMA) (less noise)
+- Divergence Sensitivity: 40–60% (capture broader divergences)
+- Overflow: Enabled (trend exhaustion warning)
+
+✅ Entry Criteria:
+
+- Major reversal "+" triangle signal aligns with:
+	- HyperWave crossing signal line (turning-point dot).
+	- SMF crossing 50-level bullish (upward) or bearish (downward).
+	- Confluence Meter > 70 (strong agreement across matrix).
+- Hidden divergences during pullbacks confirm trend continuation entries.
+
+🔴 Exit Criteria:
+
+- Overflow warning after prolonged run (prepare exit).
+- Opposite major reversal "+" triangle signals new trend direction.
+- Confluence weakening significantly (level 2 dropping sharply to 0/1).
+
+🚨 Alerts to Set:
+
+- HyperWave OB/OS turning-point signals (overbought/oversold crosses)
+- Strong bullish/bearish Confluence signals
+- Major reversal signals (+ triangles)
+- SMF crossing above/below 50-level threshold
+

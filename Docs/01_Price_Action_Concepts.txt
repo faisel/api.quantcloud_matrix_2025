@@ -1,0 +1,86 @@
+Price Action Concepts
+
+LuxAlgo Price Action Concepts (PAC) – quick overview
+The PAC toolkit is a single TradingView indicator that auto-plots core price-action elements—market structure, supply-demand zones, liquidity maps, imbalances, higher-timeframe levels, Fibonacci grids, and a fully programmable alert engine—so you can read the tape without layering extra indicators. Everything is switch-able, style-able, and alert-able from one panel.  (Intro | Price Action Concepts Toolkit | LuxAlgo)
+---
+
+Key features you will actually use
+
+#
+Feature
+What it detects / draws
+Why it matters
+1
+Market Structure• CHoCH (leading & supported)• BOS (trend continuation)• Dual modes: Internal (look-back 5-49) & Swing (50-100)• Optional candle coloring, swing labels (HH/HL/LH/LL) & strong/weak highs-lows
+Gives an objective, real-time read of trend shifts or continuations without moving-averages. The internal/swing split lets you zoom from micro flow to macro trend on one chart. ([Market Structure
+Price Action Concepts Toolkit
+2
+Volumetric Order Blocks + Breaker Blocks
+Auto-boxes the last down-candle before an up-move (bullish) or up-candle before a down-move (bearish) and tracks them until mitigation; breaker blocks mark an OB that has flipped bias. Optional volume bars & % metrics show how much of total volume was transacted inside the zone. ([Order Blocks
+Price Action Concepts Toolkit
+3
+Liquidity Suite• Liquidity trendlines (dynamic S/R)• Automatic pattern dashboard (triangles, wedges, H&S, double tops/bottoms, etc.)• Equal Highs/Lows (EQH/EQL)• Liquidity Grabs (highlighted sweeps)
+Maps where stops and resting orders cluster and flags when price has “grabbed” them—prime locations for reversals or continuations. Built-in alerts fire on trendline breaks, pattern detection, EQH/EQL and grabs. ([Liquidity Features
+Price Action Concepts Toolkit
+4
+Imbalance Concepts• Fair Value Gaps (FVG)• Inverse FVG (mitigated gaps)• Double FVG (balanced price ranges)• Volume & Opening gaps• User-set mitigation method & volatility filter
+Highlights inefficient price zones that often act as magnets or support/resistance. Lets you filter out “small” gaps and choose when a gap disappears. ([Imbalances
+Price Action Concepts Toolkit
+5
+Premium / Discount Zones
+Splits any chosen swing into Premium (upper ⅓), Equilibrium, Discount (lower ⅓) blocks.
+Quick risk-reward compass: longs from Discount in an up-trend, shorts from Premium in a down-trend; zones double as S/R. ([Premium & Discount
+6
+Highs & Lows MTF
+Plots previous Day, Monday, Week, Month, Quarter highs/lows.
+Classic magnet levels for targets, stop placement, or confluence with other PAC objects. ([Highs & Lows MTF
+7
+Fibonacci Retracements
+Up to five fully-custom fib sets whose anchor points can be any PAC object (swing points, OB tops, FVG edges, PD zones, previous highs/lows, etc.). Optional “anchor-to-origin” to keep fibs fixed.
+Saves time drawing fibs and ensures they always update with structure. ([Fibonacci
+8
+Alert Engine & Custom Alert Creator
+40-plus preset alerts (CHoCH/BOS, OB create/mitigate/enter, FVG events, liquidity grabs, pattern breaks, etc.) plus a multi-step condition builder and any alert() support.
+Turns the whole toolkit into an automated scanner or webhook feed for your bots—no manual chart-watching required. ([Alerts
+9
+Settings & Styling Controls
+Toggle each feature, choose look-back lengths, mitigation logic, monochrome theme, label sizes, transparency, and more from one pane.
+Lets you declutter or tune sensitivity for any market and timeframe. ([Intro
+Bottom line: PAC wraps the major “smart-money” price-action concepts into a single indicator that auto-updates, styles, and alerts itself. Mastering the nine items above gives you a full toolkit for reading structure, supply-demand, liquidity, and imbalance on any chart without extra overlays.
+
+
+
+- 1 Blueprint – Scalping (1 - 15 min)
+  
+- Chart prep
+	- Internal structure look-back 5-20 → razor-sharp CHoCH/BOS updates.
+	- Show LTF Order Blocks & FVG; hide swing clutter.
+- Entry recipe
+	- Wait for a liquidity grab or quick EQH/EQL sweep.
+	- Confirm Leading CHoCH on the same LTF candle or the very next.
+	- Enter on the first pull-back into either
+		- fresh LTF Order Block, or
+		- un-filled FVG, inside the Discount/Premium zone of that micro-swing (longs from Discount, shorts from Premium).
+	- Fire a PAC alert for step 1 + 2 combo so you do not have to stare at the screen.
+- Trade management
+	- Initial stop ≤ last swing point (few ticks).
+	- TP-1 = opposite side of the Grab; TP-2 = next OB/FVG or High/Low MTF level.
+	- If a counter-CHoCH prints before TP-1, scratch the trade.
+
+
+- 2 Blueprint – Swing (4 h - 1 D)
+  
+- Chart prep
+	- Swing structure look-back 50-100.
+	- Plot Order Blocks, FVGs, PD-zones one timeframe higher (multi-TF OBs stay accurate in PAC). LuxAlgo Docs
+- Entry recipe
+	- Identify dominant Swing trend via successive BOS.
+	- Wait for price to retrace into the Discount zone (up-trend) or Premium zone (down-trend).
+	- Look for confluence:
+		- un-mitigated Swing Order Block inside that PD-zone, and/or
+		- HTF FVG overlap.
+	- On the lower timeframe (e.g., 1 h) seek a Supported CHoCH+ as trigger; set alert accordingly.
+- Trade management
+	- Stop = beyond OB extreme or 78.6 % Fib.
+	- Scale-out at previous Week High/Low, unfilled FVG, or opposing Swing OB.
+	- Trail remainder beneath/above successive Swing HL/LH.

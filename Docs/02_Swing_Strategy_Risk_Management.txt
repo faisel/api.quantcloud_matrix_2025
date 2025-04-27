@@ -1,0 +1,27 @@
+Swing Trading Plan
+
+- Assets: BTCUSDT, ETHUSDT, SOLUSDT
+- Leverage: 1x (spot/futures with minimal margin)
+- Position Size: 3% of capital per asset
+- Risk-Reward Ratio: 1:2 + trailing stop after reaching target
+- Profit Factor Target: > 1.8
+- Max Drawdown Limit: < 12%
+- Risk Management:
+	- Risk per trade is lower because of no heavy leverage.
+	- Trailing stops capture big moves while locking in partial profits.
+	- Monthly loss limit recommendation: maximum 10%–12% to stay in control.
+- Notes:
+	- 1x leverage is ideal to handle overnight gaps and high volatility safely.
+	- 1:2 Risk-Reward is perfect for medium-term crypto moves.
+	- Profit Factor of 1.8+ ensures you remain profitable even with a lower win rate (~45–55%).
+	- Max drawdown under 12% keeps account volatility low enough for smooth growth.
+- Recalculate Position size Every 2 Months
+	- Why it is good:
+		- Swing trading is low-frequency (few trades per month).
+		- Positions stay open for days to weeks.
+		- Recalculating too often for swing trades is not needed and could distort the risk-reward.
+		- 2 months is enough time to have 6–12 trades to analyze performance.
+	- ✅ Result:
+		- Every 2 months, you slightly adjust position size based on new account balance.
+		- Your risk stays predictable and does not react to short-term noise.
+		- Reduces psychological stress (important for holding swing trades comfortably).

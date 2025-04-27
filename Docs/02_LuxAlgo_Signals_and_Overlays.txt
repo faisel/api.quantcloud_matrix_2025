@@ -1,0 +1,196 @@
+LuxAlgo Signals & Overlays 
+
+
+---
+
+1. What the toolkit gives you
+
+A single TradingView indicator that bundles two algorithmic signal engines, five overlay-style helpers, automatic TP/SL plotting, adaptive candle colours, a dashboard, and an alert builder. It is meant to confirm or fade price moves rather than fire blind entries.  (Intro | Signals & Overlays Toolkit | LuxAlgo)
+---
+
+2. Core signal engines
+
+Engine
+Purpose
+Variants
+Built-in exits
+Notes
+Confirmation
+Trend-following continuation
+Normal & Strong (+)
+Blue (bullish) / orange (bearish) crosses
+Works best when filtered with overlays ([Signal Modes
+Contrarian
+Top / bottom hunting
+Normal & Strong (+)
+Same crosses
+Faster but riskier; can also serve as alternative exits ([Signal Modes
+ML Classifier (optional) stamps every signal 1-4: low numbers hint at exhaustion, high numbers at momentum. You can hide any numbers you dislike.  (Signal Modes | Signals & Overlays | LuxAlgo)
+---
+
+3. Tuning the signals
+
+- Sensitivity (one slider for both engines)
+	- 5-10 → short-term price swings
+	- 12 (default) → medium swings
+	- 20 + → long trends  (Signal Settings | Signals & Overlays | LuxAlgo)
+- Autopilot – lets the algorithm self-adjust to market regime; you can bias it with an “Autopilot Sensitivity” number.  (Signal Settings | Signals & Overlays | LuxAlgo)
+- Dashboard “Optimal Sensitivity” – grid-searches the last 250 bars (sens. 10-20) and prints the best value; update it periodically.  (Signal Settings | Signals & Overlays | LuxAlgo)
+---
+
+4. Overlay arsenal (toggle any mix)
+
+Overlay
+What it shows
+Typical use
+Smart Trail
+Adaptive trailing stop + S/R ribbons
+Trend direction, stop placement ([Indicator Overlays
+Reversal Zones
+Dynamic upper / lower bands
+Overbought/oversold, profit targets ([Indicator Overlays
+Trend Tracer
+Smoother trend filter
+Confluence for confirmation signals ([Indicator Overlays
+Trend Catcher
+Earlier, faster trend detector
+Early entry or overlay-fired TP/SL ([Indicator Overlays
+Neo Cloud
+Ichimoku-like cloud
+Long-horizon trend & S/R ([Indicator Overlays
+
+---
+
+5. Automatic TP / SL plotting
+
+Choose one trigger (Signals, Smart Trail, Reversal Zones, Trend Catcher, Trend Tracer, Neo Cloud, or a Custom Alert). Four levels are projected; “Distance” moves them closer/farther.  (TP/SL | Signals & Overlays | LuxAlgo)
+---
+
+6. Candle colouring (quick visual state)
+
+- Confirmation Simple (default):
+	- Green = strong bull, Red = strong bear, Purple = normal  (Candle Coloring | Signals & Overlays | LuxAlgo)
+- Confirmation Gradient – intensity reflects momentum/retracement.
+- Contrarian Gradient – intensity reflects oversold/overbought.
+---
+
+7. Alerts — from one-click to script-like sequences
+
+- Pre-sets cover every signal/overlay event (e.g., “Any Bullish +”).  (Alerts | Signals & Overlays | LuxAlgo)
+- Any alert() function lets you chain multiple conditions.
+- Custom Alert Creator supports multi-step logic with Step / OR / All / Invalidate operators, max-bar intervals, placeholders for price, TP/SL, etc.  (Alerts | Signals & Overlays | LuxAlgo)
+---
+
+Applying it: scalping vs. swing
+
+Component
+Scalp Strategy (1-5 min)
+Swing Strategy (4 h – D)
+Sensitivity
+5-10 or Autopilot low-bias for more signals
+12–20 + or dashboard optimal for fewer, cleaner signals
+Preferred engine
+Contrarian for quick fades; Confirmation + for micro-trend follow
+Confirmation + for trend rides; Contrarian only for major reversals
+Filter
+Strong (+) only, ML scores 3-4 to cut noise
+Add Trend Tracer/Neo Cloud alignment
+Overlay help
+Smart Trail + Reversal Zones for tight dynamic S/L & exit
+Trend Tracer/Neo Cloud for bias; Reversal Zones for adds or exits
+TP/SL
+Use Signals trigger, small “Distance”, aim at TP1
+Use overlay-based trigger (e.g., Smart Trail), pyramid TP1-TP3
+Alerts
+Optional: ping Strong + or TP/SL hit while monitoring many pairs
+Essential: alert on Strong +, overlay flips, or custom multi-step conditions
+
+
+
+---
+
+✅ Blueprint 1: Scalping (1–15 min)
+
+
+⚙️ Signal Settings:
+
+- Sensitivity: 5–10 (Lower = more signals)
+- Mode: Autopilot (Bias towards shorter-term)
+
+🔄 Signal Engine:
+
+- Primary: Contrarian Signals (quick reversals)
+	- Priority: Strong (+) signals only
+	- ML Classifier: Use ratings 3–4 only
+- Secondary: Confirmation Signals (Strong (+)) for micro-trend continuation scalps
+
+📊 Overlays:
+
+- Smart Trail: Active stop-loss/trend confirmation
+- Reversal Zones: Entry confirmations, profit-taking areas
+
+🎯 TP/SL Levels:
+
+- Trigger Source: Signals-based
+- Distance Setting: Small (tight SL, quick TP)
+- Target Level: TP1 primarily
+
+🕯 Candle Colouring:
+
+- Confirmation Simple Mode: Immediate momentum check (Green/Red/Purple)
+
+🛎 Alerts (Optional):
+
+- Strong Contrarian/Confirmation signals for multi-asset monitoring
+
+🚦 Quick Entry Checklist:
+
+1. Strong (+) Contrarian or Confirmation signal
+2. ML Classifier rated 3–4
+3. Candle Colour aligned (Green buy / Red sell)
+4. Close proximity to Reversal Zone boundary or Smart Trail
+---
+
+✅ Blueprint 2: Swing Trading (4H–1D)
+
+
+⚙️ Signal Settings:
+
+- Sensitivity: 12–20+ (Higher = clearer signals)
+- Mode: Autopilot (Bias towards longer-term)
+
+🔄 Signal Engine:
+
+- Primary: Confirmation Signals for trend riding
+	- Priority: Strong (+) signals only
+	- ML Classifier: Use ratings 3–4 only
+- Secondary: Contrarian Signals cautiously (major trend reversals only)
+
+📊 Overlays:
+
+- Trend Tracer: Trend confirmation
+- Neo Cloud: Long-term trend alignment, S/R confirmation
+- Reversal Zones: Optimal entry/exit targets
+
+🎯 TP/SL Levels:
+
+- Trigger Source: Smart Trail or Neo Cloud-based
+- Distance Setting: Medium (balanced SL/TP distance)
+- Target Levels: TP1–TP3 (scale out positions)
+
+🕯 Candle Colouring:
+
+- Confirmation Gradient Mode: Momentum strength clearly visible (intensity)
+
+🛎 Alerts (Essential):
+
+- Strong Confirmation signals
+- Overlay condition flips (Neo Cloud, Trend Tracer)
+- Custom conditions (entry or exit criteria met)
+
+🚦 Entry Checklist:
+
+1. Strong (+) Confirmation signal
+2. ML Classifier rated 3–4
+3. Trend Tracer / Neo Cloud confirms trend direction
+4. Price near Reversal Zone boundary or Smart Trail

@@ -1,0 +1,28 @@
+Scalping Plan
+
+- Assets: BTCUSDT, ETHUSDT, SOLUSDT
+- Leverage: 10x (fixed)
+- Position Size: 2% of capital per asset
+- Risk-Reward Ratio: 1:2 + trailing stop after reaching target
+- Profit Factor Target: > 2.3
+- Max Drawdown Limit: < 8%
+- Risk Management:
+	- Risking 2% per trade with 10x leverage, strict stop-losses.
+	- Trailing stop after reaching 2× risk allows capturing extended moves.
+	- Daily loss limit recommendation: maximum 3%–4% of total capital to avoid tilt.
+- Notes:
+	- Scalping only top 3 coins ensures liquidity and better execution.
+	- 10x leverage is aggressive but acceptable with strict discipline.
+	- Maintaining a 2.3+ Profit Factor confirms system profitability even after fees.
+	- Keeping max drawdown under 8% protects long-term survival.
+	- Win rate target (unofficial but helpful): 65%–75%.
+- Recalculate Position size Every 2 Weeks
+	- Why it is good:
+		- Scalping is high-frequency, so 2 weeks usually means 30–80 trades (depending on your activity).
+		- It is enough trades to smooth out randomness (lucky or unlucky streaks).
+		- Recalculating after 2 weeks prevents wild position size jumps.
+		- Keeps your risk per trade clean and consistent.
+	- ✅ Result:
+		- Every 2 weeks, you adjust your position size slightly based on the real balance.
+		- Your 1:2 risk-reward ratio stays stable.
+		- Your risk stays proportional to your account growth.
