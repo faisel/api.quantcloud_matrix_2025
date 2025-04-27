@@ -1,155 +1,624 @@
-# 01_Scalp_Strategy.md – BTC-USDT Binance Futures (Isolated 20×)
+# 01_Scalp_Strategy.md - 20× – BTC‑Alpha + Dynamic ETH/SOL Hedge
 
-## Scope
-Automated high-frequency scalping bot driven by LuxAlgo Premium indicators on TradingView, executed via FastAPI webhooks to Binance Futures. Built for 3 m/5 m charts, targeting 62-68 % win-rate, PF ≥ 1.6, ≤ 2.5 R day-draw-down.
+# Scope
 
----
+Automated high‑frequency scalping bot on Binance Futures (Isolated 20×), driven by LuxAlgo indicators on TradingView, executed via FastAPI. Targets 62–68 % win‑rate, PF ≥ 1.6, ≤ 2.5 R day‐draw‑down, with BTC‑alpha core and dynamic ETH/SOL hedging.
 
-## 0 Prerequisites
+# 01_Scalp_Strategy.md – BTC‑alpha + dynamic Hedge ETH/SOL
 
-| Item                         | Notes                                                 |
-|------------------------------|-------------------------------------------------------|
-| **TradingView Premium**      | Real-time data + unlimited alerts                     |
-| **LuxAlgo Premium Suite**    | • Smart-Money-Concepts v1.4 (Apr 2025)<br>• Signals & Overlays v5.3<br>• Oscillator Matrix v6.1<br>• AI SuperTrend Clustering v2.0 |
-| **Binance Futures Account**  | Isolated margin; 20× max leverage; fee tier Maker 0.02 %, Taker 0.04 % |
-| **FastAPI Trade-Router**     | Expects JSON: `{symbol, side, qty, sl, tp1, trailing}` |
-| **Economic-calendar API**    | Block trading ±10 min around high-impact events       |
 
----
 
-## 1 Indicator Configuration
-
-### 1.1 Smart-Money-Concepts (SMC)
-- **HTF Time-frame:** 15 minute
-- **LTF Time-frame:** chart (3 m or 5 m)
-- **Volumetric Order Blocks:** ON (Strength ≥ 30, Buy/Sell dominance ≥ 60 %)
-- **BOS/CHoCH labels:** ON (internal + swing)
-- **Liquidity grabs:** ON (display only)
-- **Premium/Discount zones:** ON (equilibrium shading)
-- **Mitigation logic:** CLOSE
-
-### 1.2 Oscillator Matrix
-- **Money-Flow:** length 34, thresholds auto, overflow ON
-- **Hyperwave:** length 14, signal SMA 3
-- **Divergences:** realtime, sensitivity 2
-- **Confluence zones + meter:** ON
-
-### 1.3 Signals & Overlays
-- **Mode:** Confirmation
-- **Autopilot:** ON (sensitivity optimiser)
-- **Smart-Trail:** Trail + Direction filter
-- **Trend Catcher:** ON (entry confidence)
-- **Classifier:** Use only ratings ≥ 2
-
-### 1.4 AI SuperTrend Clustering (trailing)
-- **ATR length:** 10
-- **Factor range:** 1–3, step 0.5
-- **Performance memory:** 10
-- **Cluster:** BEST
-
----
-
-## 2 Trading Logic (LONG side)
-1. **Context filter:**
-   - 15 m internal structure bullish AND price in discount half of 15 m range
-   - Money-Flow above lower threshold OR overflow recently ended
-   - Funding-rate < 0.06 %
-
-2. **Trigger sequence (Lux steps alert):**
-   - Step 1: Price taps Volumetric Demand OB (≥ 60 % buy)
-   - Step 2: Hyperwave crosses up below 50-line inside OB
-   - Step 3: No active overflow
-   - Step 4: Signals & Overlays print Buy Confirmation with bullish Smart-Trail
-
-3. **Entry:** Market (or limit in last 50 % of OB) next candle
-
-4. **Initial Stop-loss:** OB-low – 0.75 × ATR14
-
-5. **Position size:**  
-   `USDT_qty = (Account_Equity × 0.0075) / (Entry – SL)`  
-   `Notional = USDT_qty × 20 (leverage)`
-
-6. **Trade management:**
-   - TP-1: +1 R close 50 %, SL→BE
-   - AI-SuperTrend trail remainder
-   - Hard exit on opposite CHoCH or 30 min timeout
-
-7. **Daily circuit-breaker:** Disable after −3 R realised PnL
-
-*SHORT rules mirror LONG side.*
-
----
-
-## 3 Alert-Scripting (TradingView)
-```plaintext
-// Placeholders
+# Alert
 {HTF_BULL} AND {OB_DEMAND_HIT} AND {HW_CROSS_UP} AND {NO_OVERFLOW} AND {BUY_CONF} AND {TRAIL_BULL}
-```
-- Create single **Any alert() call** → Webhook URL (FastAPI).
 
-### 3.1 Webhook JSON template
+1. {HTF_BULL}
+Meaning: Higher Timeframe (15m) shows a bullish internal structure.
+Purpose: Ensures you're trading with the broader trend.
+Source: Comes from SMC + PAC BOS/CHoCH structure.
+
+2. {OB_DEMAND_HIT}
+Meaning: Price has just tapped a Volumetric Demand Order Block, strength ≥ 60%.
+Purpose: Entry should occur only at zones of confirmed buying interest.
+Source: LuxAlgo Smart Money Concepts + PAC (OB logic).
+
+3. {HW_CROSS_UP}
+Meaning: Hyperwave oscillator crossed above its SMA (signal line) inside the OB.
+Purpose: Confirms that momentum is shifting bullish at the entry zone.
+Source: Oscillator Matrix, Hyperwave section.
+
+4. {NO_OVERFLOW}
+Meaning: Money Flow overflow is not active.
+Purpose: Avoid entries when the market is overheated and could reverse.
+Source: Oscillator Matrix – Overflow zone ON, auto thresholds.
+
+5. {BUY_CONF}
+Meaning: LuxAlgo Buy Confirmation Signal is active (via Signals & Overlays).
+Purpose: Ensures alignment with a statistically strong buy signal.
+Source: Signals & Overlays, ML classifier + confirmation mode ON.
+
+6. {TRAIL_BULL}
+Meaning: Smart Trail trend direction is bullish.
+Purpose: Final directional filter — you only trail and enter when trend aligns.
+Source: Signals & Overlays, Smart Trail enabled.
+
+
+
+Feature	Source	Used in Strategy
+BOS / CHoCH structure	PAC + SMC	HTF_BULL / HTF_BEAR
+OB boundaries & precision	PAC	OB_DEMAND_HIT / OB_SUPPLY_HIT
+Liquidity zones & traps	PAC	Visual filter only (future: scriptable)
+
+# Summary
+Tag | Confirms... | Module
+HTF_BULL | 15m bias is bullish | SMC + PAC
+OB_DEMAND_HIT | Price tapped strong demand OB | SMC + PAC
+HW_CROSS_UP | Momentum turning bullish | Oscillator Matrix
+NO_OVERFLOW | No exhaustion risk | Oscillator Matrix
+BUY_CONF | Confirmed buy rating | Signals & Overlays
+TRAIL_BULL | AI trailing system shows bullish trend | Signals & Overlays
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 1 Indicator Configuration
+1.1 LuxAlgo – Smart‐Money‐Concepts v1.4 (SMC)
+
+    HTF: 15 min
+
+    LTF: 3 min
+
+    Volumetric OB: ON, Strength ≥ 30, Dominance ≥ 60 %
+
+    BOS/CHoCH: ON (internal + swing)
+
+    Premium/Discount zones: ON
+
+    Mitigation logic: CLOSE
+
+1.2 LuxAlgo – Price Action Concepts™
+
+    BOS/CHoCH confirmations (framework alignment)
+
+    Order‑Block precision: uses fair‑value gaps & liquidity pools to fine‑tune OB edges
+
+    Liquidity grabs: ON (high‑precision structure filter)
+
+    Equal highs/lows: Identify actionable liquidity clusters
+
+1.3 LuxAlgo – Oscillator Matrix v6.1
+
+    Money-Flow: length 34, auto thresholds, overflow ON
+
+    Hyperwave: length 14, signal SMA 3
+
+    Divergences: realtime, sensitivity 2
+
+1.4 LuxAlgo – Signals & Overlays v5.3
+
+    Mode: Confirmation, Autopilot ON
+
+    Smart-Trail: Trail + Direction filter
+
+    Classifier: Ratings ≥ 2
+
+1.5 LuxAlgo – AI SuperTrend Clustering v2.0
+
+    ATR: length 10
+
+    Factor range: 1–3, step 0.5
+
+    Memory: last 10 trades
+
+    Cluster: BEST
+
+# 2 Trading Logic (LONG side)
+2.1 Context Filter
+
+    15 m internal structure bullish (SMC + Price Action BOS)
+
+    Price in discount half of 15 m range (SMC Premium/Discount + PAC fair‑value zones)
+
+    Money‑Flow above threshold OR recent overflow ended
+
+    Funding‑rate < 0.06 %
+
+2.2 Trigger Sequence
+
+    Price taps Volumetric Demand OB (≥ 60 % buy) and PAC‑defined OB edge
+
+    Hyperwave crosses up below 50‑line inside OB
+
+    No active overflow
+
+    Buy Confirmation + bullish Smart‑Trail
+
+2.3 Entry & Stop‑Loss
+
+    Entry: Post‑only limit at mid‑OB (maker) → IOC market fallback after 700 ms
+
+    SL: OB‑low – 0.6–0.75× ATR14 (use 0.6× when OB height < 1.2× ATR14)
+
+2.4 Trade Management
+
+    TP‑1 (30 %): +1 R, then move SL→BE
+
+    TP‑2 (30 %): +1.5 R
+
+    Trail (40 %): AI_SuperTrend dynamic trailing
+
+    Hard exit: Opposite CHoCH (Price Action structure flip) or 30 min timeout
+
+2.5 Dynamic ETH/SOL Hedge
+
+    Calculate rolling 1 h β for ETH & SOL vs BTC
+
+    On BTC LONG: open ETH & SOL SHORT sized = BTC_size×β×hedge_factor (0.5–0.7)
+
+    Hedge SL = OB_high/low ± 0.9×ATR (no TP; close with BTC)
+
+# 3 Trading Logic (SHORT side)
+
+Mirror LONG logic with bearish bias:
+
+    Context: 15 m bearish structure + price in premium half
+
+    Trigger: Supply OB ≥ 60 % sell + Hyperwave down‑cross >50
+
+    Entry & SL: Limit at mid‑OB (maker), fallback IOC; SL = OB‑high + 0.6–0.75×ATR
+
+    Management: TP‑1 @ 1 R, TP‑2 @ 1.5 R, trail remainder via AI_SuperTrend, exit on CHoCH or timeout
+
+    Hedge: On BTC SHORT, open ETH/SOL LONG same β×factor sizing
+
+# 4 Alert‑Scripting (TradingView)
+
+alert_message = "{HTF_BULL} AND {OB_DEMAND_HIT} AND {HW_CROSS_UP} AND {NO_OVERFLOW} AND {BUY_CONF} AND {TRAIL_BULL}"
+alert(alert_message, alert.freq_all)
+
+Webhook JSON (paste in TradingView alert):
+
+{
+  "symbol": "BINANCE:BTCUSDT",
+  "side": "{{strategy.position_size>0? 'SELL':'BUY'}}",
+  "qty": "{{calc_position_size}}",
+  "sl": "{{strategy.order.price - atr14*sl_mult}}",
+  "tp1": "{{strategy.order.price + risk}}",
+  "trail": "AI_SUPERTREND"
+}
+
+    sl_mult: 0.6 or 0.75 depending on OB height
+
+    qty from dynamic risk‐per‐trade calc
+
+# 5 Back-testing & Optimisation
+
+    Back‑tester: Signals & Overlays on 3 m, 10,000 bars from 2023‑01‑01
+
+    Optimiser: Max PF subject to DD < 8 %
+
+    Walk‑forward: 90‑day slices, maintain PF ≥ 1.4
+
+    Slippage check: Paper‑account dry‑run, ensure slippage < 0.06 %
+
+# 6 Risk & Account Parameters
+Parameter	Value
+Leverage	20× (ramp 5→10→20)
+Margin mode	Isolated
+Risk per trade	0.75 % equity
+Max intraday loss	2.5 R
+Daily circuit‑breaker	−3 R on any direction
+Equity‑curve soft‑stop	Disable if equity < (ATH–6 R)
+Dynamic risk throttle	Risk% = base×max(0.5, 1–Drawdown/8 %)
+Commission	Maker 0.02 %, Taker 0.04 %
+Funding filter	Skip entries if funding > 0.06 % 8 h
+
+# 7 Deployment Checklist
+
+Indicator & PAC setup on TradingView
+
+Alert script & JSON template configured
+
+Testnet dry‑run (48 h) at 5× leverage, 0.5 % risk
+
+    Live deploy at 20× leverage once validated
+
+# 8 Maintenance
+
+    Daily: Verify alerts active; funding < 0.06 %; clear logs
+
+    Weekly: Tune Smart‑Trail & PAC OB precision; check latency
+
+    Monthly: 60‑day walk‑forward; Bayesian re‑optimisation (Optuna/Ax)
+
+    Quarterly: Monte‑Carlo stress tests; refresh fee/funding model
+
+##########
+Strategy Setup
+1  Create / upgrade TradingView workspace
+
+    Already on Premium; ensure chart timezone = Exchange
+
+2  Install LuxAlgo Premium indicators
+
+    Already licensed; add SMC, PAC, Osc Matrix, S&O, AI SuperTrend
+
+3  Configure indicator inputs
+
+    Follow exact recipes above; include PAC settings for BOS, OB, liquidity
+
+4  Build master Alert() script
+
+    Single composite alert per chart; paste JSON template
+
+5  Safety & QA
+
+    Add back‑tester overlay; test–fire alerts; spam guard off
+
+7  Daily launch routine
+
+    Toggle indicators, confirm funding, clear TV logs, start FastAPI
+
+This final version integrates Price Action Concepts™, tightens risk, scales R:R, and preserves your high‑frequency, high‑quality edge. Let me know if anything else needs refinement!
+
+
+
+
+
+
+## Strategy Setup
+
+Here’s the updated **Strategy Setup** reflecting **3‑minute charts only** and including **ETHUSDT** and **SOLUSDT**:
+
+---
+
+## Strategy Setup
+
+### 1  Create / Upgrade the TradingView Workspace
+- You already have **TradingView Premium**.  
+- Set **Chart Timezone** → *Exchange*.  
+- Create a **3‑minute multi‑pair layout** with three tabs:  
+  1. **BTCUSDT 3 m**  
+  2. **ETHUSDT 3 m**  
+  3. **SOLUSDT 3 m**  
+- Save this layout as **“Scalp 3m Multi‑Pair”**.  
+- (Optional) Clone the layout for quick “backup” edits.
+
+---
+
+### 2  Install LuxAlgo Premium Indicators  
+*(Add to *all three* 3 m tabs)*  
+- **Smart‑Money‑Concepts v1.4**  
+- **Price Action Concepts™**  
+- **Oscillator Matrix v6.1**  
+- **Signals & Overlays v5.3**  
+- **AI SuperTrend Clustering v2.0**  
+
+---
+
+### 3  Configure Indicator Inputs (Exact Recipe)  
+> Apply these *identical* settings on BTC, ETH and SOL 3 m charts.
+
+#### Smart‑Money‑Concepts v1.4  
+| Input               | Value                        |
+|---------------------|------------------------------|
+| HTF Time‑frame      | 15 min                       |
+| LTF Time‑frame      | Chart                        |
+| Volumetric OB       | ON; Strength ≥ 30; Dominance ≥ 60% |
+| BOS/CHoCH labels    | ON (internal + swing)        |
+| Premium/Discount    | ON                           |
+| Mitigation logic    | CLOSE                        |
+
+* In detail *
+
+✅ Final Config: LuxAlgo – Smart Money Concepts v1.4
+🔹 Real-Time Structure (Top Section)
+Setting	Value
+Show Internal Structure	✅ ON
+Bullish/ Bearish Structure	All
+Internal Label Size	tiny
+Show Swing Structure	✅ ON
+Swing Label Size	small
+Show Strong/Weak High/Low	✅ ON
+Show Swings Points	(50 is fine)
+Confluence Filter	❌ OFF
+🔹 Order Blocks
+Setting	Value
+Internal Order Blocks	✅ ON (5)
+Swing Order Blocks	❌ OFF
+Order Block Filter	ATR
+Order Block Mitigation	High/Low
+🔹 Equal Highs/Lows (EQH/EQL)
+Setting	Value
+Equal High/Low	✅ ON
+Bars Confirmation	3
+Threshold	0.1
+Label Size	tiny
+🔹 Fair Value Gaps (FVG)
+Setting	Value
+Fair Value Gaps	❌ OFF (We don’t need this)
+Auto Threshold	✅ ON (can leave checked)
+Timeframe	Chart
+Extend FVG	1
+🔹 Premium / Discount Zones
+Setting	Value
+Premium/Discount Zones	✅ ON
+Premium Zone / Discount Zone / Equilibrium	(Colors optional — leave default or match your theme)
+🔹 Input Summary
+
+    Leave “Inputs in status line” ✅ ON (default).
+
+    Do not enable color candles or Historical Mode override.
+
+Once you confirm the above config is applied to all BTCUSDT, ETHUSDT, and SOLUSDT 3m charts
+
+
+
+#### Price Action Concepts™  
+| Input               | Value                        |
+|---------------------|------------------------------|
+| BOS/CHoCH           | ON                           |
+| Liquidity grabs     | ON                           |
+| Order‑Block shading | ON (FVGs + pools)            |
+| Equal highs/lows    | ON                           |
+
+* In detail
+
+
+🧱 Market Structure
+Setting	Value
+Internal	All (5)
+Swing	None
+Timeframe	Chart
+Show Swing High/Low	❌ Off
+Show Strong/Weak HL	❌ Off
+Color Candles	❌ Off
+📦 Volumetric Order Blocks
+Setting	Value
+Show Last	✅ ON (5)
+Internal Buy/Sell Activity	✅ ON
+Show Breakers	❌ OFF
+Length	5
+Mitigation Method	Close
+Timeframe	Chart
+Show Metrics	✅ ON
+Show Mid‑Line	✅ ON
+Hide Overlap	✅ ON
+💧 Liquidity Concepts
+Setting	Value
+Trend Lines	❌ OFF
+Patterns	❌ OFF
+Show Pattern Zones	✅ ON
+Equal H&L	Short-Term only
+Liquidity Grabs	✅ ON
+🧾 Imbalance Concepts
+Setting	Value
+Imbalance Type	FVG
+Mitigation Method	Close
+Timeframe	Chart
+Extend Imbalance	10
+Volatility Threshold	0
+🧠 Premium & Discount Zones
+Setting	Value
+Premium/Discount Zones	❌ OFF
+
+    We get P/D logic from SMC v1.4, so we leave this version off to avoid redundancy.
+
+📉 Highs & Lows MTF
+
+All settings: ❌ OFF
+🔺 Fibonacci Retracements
+
+Leave OFF, not needed for this strategy.
+🎨 General Styling
+Setting	Value
+Internal Label	Tiny
+Swing Label	Small
+Structures Theme	Colored
+EQHL Size	Tiny
+OB Metrics Size	Small
+Dashboard Location	Top Right
+Dashboard Size	Small
+
+
+#### Oscillator Matrix v6.1  
+| Input              | Value            |
+|--------------------|------------------|
+| Money‑Flow length  | 34; Auto thresh; Overflow ON |
+| Hyperwave length   | 14; SMA 3        |
+| Divergences        | Realtime; Sens 2 |
+| Confluence zones   | ON               |
+
+* In detail
+✅ LuxAlgo – Oscillator Matrix v6.1 Configuration
+Smart Money Flow
+Input	Value
+✅ Show Money Flow	ON
+Money Flow Length	35
+Smooth	6
+Thresholds	Auto (colors: Green/Red)
+Overflow	✅ ON
+HyperWave
+Input	Value
+✅ Show HyperWave	ON
+HyperWave Length	7
+Signal	SMA 3
+Colors	Green / Gray (80%) opacity
+HyperWave Divergences
+Input	Value
+✅ Show Divergences	ON
+Divergence Sensitivity %	20
+✅ Show Divergences on Chart	ON
+Divergence Colors	Blue / Red
+Reversals
+Input	Value
+✅ Show Reversals	ON
+Reversal Factor	5
+Reversal Colors	Green / Red
+Confluence Zones
+Input	Value
+✅ Upper Confluence	ON
+✅ Lower Confluence	ON
+Show Confluence Meter	OFF
+Meter Width
+
+
+#### Signals & Overlays v5.3  
+| Input              | Value                 |
+|--------------------|-----------------------|
+| Mode               | Confirmation          |
+| Autopilot          | ON                    |
+| Smart‑Trail        | Trail + Direction     |
+| Classifier rating  | ≥ 2                   |
+
+
+* In detail
+
+✅ Signals & Overlays v5.3 Configuration (Exact Settings)
+📌 Basic Settings
+Setting	Value
+Presets/Filters	None (custom setup)
+Signal Mode	Confirmation
+ML Signal Classifier	OFF
+Signals Sensitivity	(Default)
+Candle Coloring	As per your preference
+📌 Indicator Overlay
+Overlay	Enabled	Value
+✅ Smart Trail	Yes	3 (both blue/red coloring enabled)
+⬜ Reversal Zones	No	—
+⬜ Trend Catcher	No*	(You’re using this in alert creator only)
+⬜ Trend Tracer	No	—
+⬜ Neo Cloud	No	—
+📌 TP/SL Settings
+Setting	Value
+TP/SL Levels	None
+Distance	5
+
+    TP/SL logic handled by your FastAPI trade engine; we skip in-chart drawing here.
+
+📌 Advanced Settings
+Setting	Value
+ML Classifier	1234
+Autopilot Sensitivity	Off
+📌 Dashboard Settings
+Setting	Value
+Location	Bottom Right
+Size	Small
+Color	(Dark blue swatch)
+✅ Trend Strength	Yes
+⬜ Volatility	No
+⬜ Squeeze	No
+⬜ Volume Sentiment	No
+📌 Custom Alert Creator
+Signal Type	Value	Step
+Signal	Any Bullish	1
+ML Classifier	1234	1
+Smart Trail	Price Only	1
+Trend Tracer	Uptrend Only	1
+Trend Catcher	Uptrend Only	1
+Neo Cloud	Uptrend Only	1
+
+
+
+#### AI SuperTrend Clustering v2.0  
+| Input          | Value                  |
+|----------------|------------------------|
+| ATR length     | 10                     |
+| Factor range   | 1–3 step 0.5           |
+| Memory         | 10 trades              |
+| Cluster        | BEST                   |
+
+* In detail
+✅ Step 5: Configure LuxAlgo – AI SuperTrend Clustering v2.0
+
+    This handles dynamic trailing stop logic. It automatically picks the best ATR-based SuperTrend factor based on recent trade performance. Let’s set it up precisely for your BTC‑Alpha + ETH/SOL Hedge system.
+
+🔧 Inputs Tab – Recommended Settings
+Setting	Value
+ATR Length	10
+Factor Range	1 – 3
+Factor Step	0.5
+Performance Memory	10
+Cluster Selection	BEST
+
+    This means it will dynamically test:
+
+        1.0× ATR
+
+        1.5× ATR
+
+        2.0× ATR
+
+        2.5× ATR
+
+        3.0× ATR
+        And pick the best one every 10 trades.
+
+        
+
+
+
+
+---
+
+### 4  Build the Master Alert() Script  
+> **Only on the BTCUSDT 3 m tab** (ETH/SOL don’t fire alerts—they’re hedged programmatically).
+
+1. In **Pine Editor**, paste:
+   ```pinescript
+   alert_message = "{HTF_BULL} AND {OB_DEMAND_HIT} AND {HW_CROSS_UP} AND {NO_OVERFLOW} AND {BUY_CONF} AND {TRAIL_BULL}"
+   alert(alert_message, alert.freq_all)
+   ```
+2. Save as **“BTC_Scalp_LuxSteps”** and **add** to BTC 3 m chart.  
+3. Create an **Alert**:
+   - **Condition:** BTC_Scalp_LuxSteps → Any alert() call  
+   - **Options:** Once per bar  
+   - **Webhook URL:** `https://<your-domain>/webhook`  
+   - **Message:** see below  
+
+#### Webhook JSON Template
 ```json
 {
   "symbol": "BINANCE:BTCUSDT",
-  "side": "BUY",
+  "side": "{{strategy.position_size>0? 'SELL':'BUY'}}",
   "qty": "{{calc_position_size}}",
-  "sl": "{{strategy.order.price - atr14*0.75}}",
+  "sl": "{{strategy.order.price - atr14*sl_mult}}",
   "tp1": "{{strategy.order.price + risk}}",
   "trail": "AI_SUPERTREND"
 }
 ```
+- `sl_mult` = 0.6 if OB height < 1.2× ATR14, else 0.75  
+- `qty` calculated as 0.75% of equity ÷ (Entry–SL)
 
 ---
 
-## 4 Back-testing & Optimisation
-1. Add **Signals & Overlays Back-tester** to 3 m chart
-2. Bars = 10,000, Start = 2023-01-01
-3. External filter = Osc Matrix Money-Flow positive
-4. Optimiser → Max PF with DD < 8 %
-5. Walk-forward 90-day slices; maintain PF ≥ 1.4
-6. Deploy to paper-account; compare slippage (< 0.06 %)
+### 5  Safety, Spam‑Proofing & QA
+- **Back‑test overlay:** Attach “Signals & Overlays Back‑tester” on BTC 3 m.  
+- **Spam Guard:** Disable pop‑up & email notifications.  
+- **Test Fire:** “Send test notification” → confirm success.  
+- **Economic Filter:** High‑impact events blocked server‑side.
 
 ---
 
-## 5 Risk & Account Parameters
-
-| Parameter            | Value                        |
-|----------------------|------------------------------|
-| Margin mode          | Isolated                     |
-| Leverage             | 20× (ramp-up: 5× → 10× → 20×) |
-| Max intraday loss    | 2.5 R                        |
-| Daily circuit breaker| −3 R                         |
-| Commission           | Maker 0.02 %, Taker 0.04 %    |
-| Funding filter       | Skip if funding > 0.06 % 8h  |
+### 7  Daily Launch Routine (Operator Cheat‑Sheet)
+1. **Confirm indicators** (SMC, PAC, Osc, S&O, AI ST) are enabled on all three 3 m tabs.  
+2. **Verify** BTC alert is *active* (green).  
+3. Check **Binance funding rate** < 0.06% (via CoinGlass/API).  
+4. Clear TV **notification log**.  
+5. Start/reset FastAPI **after** alerts live.  
+6. Monitor **latency** & **error logs** (CloudWatch/Slack).
 
 ---
 
-## 6 Deployment Checklist
-- [ ] Import indicators to TradingView
-- [ ] Configure master alert script
-- [ ] Verify FastAPI JSON parsing
-- [ ] 48-hour dry-run on testnet
-- [ ] Live deploy at 5× leverage, 0.5 % risk
-
----
-
-## 7 Maintenance
-- **Weekly:** Optimise Smart-Trail sensitivity
-- **Monthly:** 6-month walk-forward analysis
-- **Quarterly:** Review funding-rate and fee tier impact
-
----
-
-
-
-
-
-
-
-
-
-
-
+With this, your **3 m multi‑pair** workspace is fully configured for **BTC‑alpha + dynamic ETH/SOL hedge**, complete with **Price Action Concepts™** precision on all three charts.
 
 
 
@@ -258,174 +727,6 @@ Thus, **each trade (on average) makes about 2.07 USDT net**.
 **Conclusion:**
 With a 1,000 USDT initial capital, you can realistically target around **14.50 USDT/day** or about **319 USDT/month** after considering commissions and slippage, provided the strategy is executed with precision and stable market conditions prevail.
 
-
-
-
-
-##########
-Strategy Setup
-#########
-
-Below is a practical, point‑by‑point checklist that takes you from a fresh TradingView account to a fully armed, one‑click LuxAlgo “Any alert()” that can later be wired to your FastAPI router. I keep every step self‑contained and explain *why* you do it, so you understand how each switch supports the strategy you drafted.
-
----
-
-## 1  Create / upgrade the TradingView workspace
-
-| Step | Action | Why it matters |
-|------|--------|----------------|
-|1.1|Sign‑in → **Upgrade** → choose **Premium** plan|Premium unlocks real‑time crypto feeds, second‑interval replay, unlimited indicators & alerts—mandatory for high‑frequency scalping.|
-|1.2|Open **Chart Layout** → gear‑icon **Settings** → **Timezone** = *Exchange*|Keeps indicator timestamps identical to Binance; avoids desync when funding windows flip.|
-|1.3|Add two tabs inside the same layout:<br>• **BTCUSDT 3 m**<br>• **BTCUSDT 5 m**|Your bot toggles both; separate tabs let you launch alerts on each time‑frame without re‑configuring inputs.|
-
----
-
-## 2  Install LuxAlgo Premium indicators
-
-You must be granted Premium access by the LuxAlgo bot after purchase. Once that’s done:
-
-| Step | Action | Why |
-|------|--------|-----|
-|2.1|On the 3 m chart press **Indicators** → “Invite‑only scripts”|Shows all licensed LuxAlgo modules.|
-|2.2|Add **LuxAlgo – Smart Money Concepts v1.4**|SMC supplies HTF structure, BOS/CHoCH, order blocks—core context filter (#2).|
-|2.3|Add **LuxAlgo – Signals & Overlays v5.3**|Generates confirmation/Smart‑Trail events—acts as entry trigger (#2‑Step 4).|
-|2.4|Add **LuxAlgo – Oscillator Matrix v6.1**|Money‑Flow, Hyperwave & divergences—feeds Step 2 and overflow logic.|
-|2.5|Add **LuxAlgo – AI SuperTrend Clustering v2.0**|Dynamic trailing stop that self‑optimises—automates exit management.|
-
-> **Tip:** Repeat the same adds on the 5 m tab so both charts stay in sync.
-
----
-
-## 3  Configure indicator inputs (exact recipe)
-
-> Use the *cog* (⚙️) next to each script name. Only inputs mentioned below change—leave the rest default.
-
-### 3.1  Smart Money Concepts v1.4  
-| Input | Value | Why |
-|-------|-------|-----|
-|HTF Time‑frame|**15 minute**|Matches “context filter” spec (macro structure).|
-|LTF Time‑frame|**Chart**|Locks to active tab (3 m/5 m).|
-|Volumetric Order Blocks|**ON**; Strength ≥ 30; Dominance ≥ 60 %|Filters weak OBs; ≥ 60 % buy or sell dominance lines up with trigger Step 1.|
-|BOS/CHoCH labels|**ON** (internal + swing)|Bot must spot opposite CHoCH to force exit.|
-|Liquidity grabs|**ON (display only)**|Visual sanity check; not in automation.|
-|Premium/Discount zones|**ON**|Needed to verify “price in discount half”.|
-|Mitigation logic|**CLOSE**|Declares OB mitigated only after close beyond — avoids premature deletion.|
-
-### 3.2  Oscillator Matrix v6.1  
-| Input | Value | Why |
-|-------|-------|-----|
-|Money‑Flow length|**34**|Slower; reduces noise on 3 m bars.|
-|Thresholds|**Auto**|Adapts to regime changes.|
-|Overflow|**ON**|We exit/skip if overflow active.|
-|Hyperwave length|**14**, **Signal SMA 3**|Matches strategy for cross.|
-|Divergences sensitivity|**2**|Mid‑sensitivity to avoid spam.|
-|Confluence zones + meter|**ON**|Extra heads‑up for manual oversight.|
-
-### 3.3  Signals & Overlays v5.3  
-| Input | Value | Why |
-|-------|-------|-----|
-|Mode|**Confirmation**|Generates bullish/bearish “Buy Confirmation” events (not raw buy/sell).|
-|Autopilot|**ON**|Lets Lux optimiser nudge sensitivity by volatility—keeps win‑rate stable.|
-|Smart‑Trail|**Trail + Direction filter**|Merges trend filter with trailing stop (no need for extra EMA).|
-|Trend Catcher|**ON**|Extra gate on entry—only when both algos agree.|
-|Classifier minimum rating|**≥ 2**|Ignores low‑confidence signals.|
-
-### 3.4  AI SuperTrend Clustering v2.0  
-| Input | Value | Why |
-|-------|-------|-----|
-|ATR length|**10**|Shorter ATR suits 3 m bars.|
-|Factor range|**1 – 3** in 0.5 steps|Creates six variants for ensemble.|
-|Performance memory|**10**|Uses last 10 trades to rank which factor performs best now.|
-|Cluster|**BEST**|Applies only best‑performing SuperTrend to trailing.|
-
----
-
-## 4  Build the master Alert() script
-
-TradingView needs **one** composite alert per chart so every qualifying bar sends a webhook payload.
-
-### 4.1 Insert Lux “Any alert()” line
-
-1. In **Pine Editor** (bottom panel), start a blank script.  
-2. Paste exactly one line:
-
-```pinescript
-alert_message = "{HTF_BULL} AND {OB_DEMAND_HIT} AND {HW_CROSS_UP} AND {NO_OVERFLOW} AND {BUY_CONF} AND {TRAIL_BULL}"
-alert(alert_message, alert.freq_all)
-```
-
-*Why*  
-- `alert.freq_all` fires on *every tick*, not just on close—critical for scalp latency.  
-- Each curly placeholder corresponds to the LuxAlgo built‑in *steps* you defined in the chart UI (Lux docs → “Steps alerts”). Internally, Lux expands them to 1/0.  
-
-> **Tip:** Save script as **“BTC_Scalp_LuxSteps”**; add to both charts.
-
-### 4.2 Create the TradingView alert
-
-| Screen | Setting | Value / Notes |
-|--------|---------|---------------|
-|**Condition**|Your script → **Any alert() function call**|Ensures the exact same logic for long *and* short; side is chosen later in webhook.|
-|**Options**|**Once per bar**|Stops duplicate hits inside the same candle but still fires immediately.|
-|**Expiration**|Open‑ended|You’ll deactivate via code when circuit‑breaker triggers.|
-|**Webhook URL**|Your FastAPI endpoint (add later)|Holds JSON POST.|
-|**Alert message**|Paste the **JSON template** below.|TradingView replaces the curly tags at runtime.|
-
-#### Webhook JSON template (copy into *Message* box)
-```json
-{
-  "symbol": "BINANCE:BTCUSDT",
-  "side": "{{strategy.position_size>0? 'SELL':'BUY'}}",
-  "qty": "{{calc_position_size}}",
-  "sl": "{{strategy.order.price - atr14*0.75}}",
-  "tp1": "{{strategy.order.price + risk}}",
-  "trail": "AI_SUPERTREND"
-}
-```
-**What for**  
-- `{{calc_position_size}}` is a Pine variable you’ll output in the same script once you wire account‑equity input. For now it can be a placeholder.  
-- The ternary operator flips *side* automatically so one alert covers both directions.  
-- Values like `atr14` are fetched from your script’s runtime vars.
-
----
-
-## 5  Safety, spam‑proofing & QA
-
-| Check | How | Why |
-|-------|-----|-----|
-|Back‑test overlay|Add **“Signals & Overlays Back‑tester”** to 3 m tab, 10 k bars, start = 2023‑01‑01|Confirms the alert() script sees the same events back‑tester counts.|
-|Alert spam guard|Set **“max alerts”** in account to e‑mail + pop‑up = off|You rely exclusively on webhook; reduce noise.|
-|Test fire|With webhook blank, click **Send test notification** → see if TradingView says “success”|Validates JSON formatting before pointing at live FastAPI.|
-|Economic calendar filter|TradingView’s built‑in calendar can’t auto‑snooze alerts. You’ll block in the server layer via the API later|Keeps chart side lightweight.|
-
----
-
-## 6  Cloning the setup to the 5 m tab
-
-1. Right‑click chart tab → **Clone**.  
-2. Change Interval to **5**.  
-3. Verify SMC LTF automatically picks “Chart”; no other inputs change.  
-4. Re‑open Alerts panel, duplicate the alert, name it **BTC_Scalp_5m**—everything else identical.
-
----
-
-## 7  Daily launch routine (operator cheat‑sheet)
-
-1. **Toggle visibility** of all four Lux indicators → verify green check marks.  
-2. Make sure alert dot in right toolbar is *green* for both charts.  
-3. Confirm Binance funding‑rate < 0.06 % (e.g., CoinGlass) before market open; disable alerts if breached.  
-4. Clear TradingView notification log—easier to spot misfires.  
-5. Start your FastAPI router **after** alerts are live (guarantees endpoint is listening).
-
----
-
-### You’re now ready for the FastAPI & server‑side leg.
-
-The above gives you a stable, version‑locked TradingView + LuxAlgo environment that emits clean, atomic webhook calls matching every single requirement in your .md spec. When you’re ready to wire the Python router, just point the webhook URL to it and parse the JSON you already embedded.
-
-
-##########
-##########
-##########
 
 
 
